@@ -32,8 +32,8 @@ index_to_song = np.array(song_ids)
 # ============================================================
 print("Creating sparse matrix...")
 
-row = taste_df["user"].map(user_to_index).values
-col = taste_df["song"].map(song_to_index).values
+row = taste_df["user"].map(user_to_index).values  # pyright: ignore
+col = taste_df["song"].map(song_to_index).values  # pyright: ignore
 data = taste_df["play_count"].values
 
 matrix_coo = coo_matrix((data, (row, col)), shape=(len(user_ids), len(song_ids)))
@@ -45,7 +45,7 @@ print("Matrix created.")
 print("Shape:", user_song_matrix.shape)
 print(
     "Density:",
-    user_song_matrix.nnz / (user_song_matrix.shape[0] * user_song_matrix.shape[1]),
+    user_song_matrix.nnz / (user_song_matrix.shape[0] * user_song_matrix.shape[1]),  # pyright: ignore
 )
 
 # ============================================================
@@ -100,13 +100,3 @@ def recommend_songs(user_id, n_recommendations=5, k_neighbors=10):
     recommended = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
     return [song for song, score in recommended[:n_recommendations]]
-
-
-# ============================================================
-# 6. Example usage
-# ============================================================
-user_id = "b80344d063b5ccb3212f76538f3d9e43d87dca9e"
-print("Recommendations for user:")
-
-recs = recommend_songs(user_id, n_recommendations=10)
-print(recs)
