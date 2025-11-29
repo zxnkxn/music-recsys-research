@@ -1,8 +1,26 @@
 import os
 from scripts import hdf5_getters, item_based_cf
+import pandas as pd
 
 # Path to the Million Song Subset HDF5 files
 MSS_PATH = "data/MillionSongSubset"
+
+# Path to Taste Profile Subset
+TASTE_PROFILE_PATH = "data/train_triplets.txt"
+
+# Load the full file
+taste_subset = pd.read_csv(
+    TASTE_PROFILE_PATH,
+    sep="\t",
+    header=None,  # file has no header
+    dtype=str,
+)
+
+# Assign column names manually
+taste_subset.columns = ["user", "song", "playcount"]
+
+# Remove duplicates so each user appears only once
+unique_users = taste_subset["user"].drop_duplicates().reset_index(drop=True)
 
 
 def find_h5_file_for_song(song_id):
@@ -68,7 +86,8 @@ def main():
     then prints artist and title for each recommendation.
     """
     # Example user ID for whom to generate recommendations
-    user_id = "b80344d063b5ccb3212f76538f3d9e43d87dca9e"
+    # user_id = "b80344d063b5ccb3212f76538f3d9e43d87dca9e"
+    user_id = unique_users.iloc[15]
 
     # Get top N recommended song IDs
     recommended_ids = item_based_cf.recommend_songs(user_id, n_recommendations=3)
