@@ -13,9 +13,9 @@ services:
       - spark-net
     volumes:
       # Volume format: <host_path>:<container_path>
-      # This mounts the dataset located on the host at ./data/MillionSongSubset
-      # into the container at /data/MillionSongSubset
-      - ./data/MillionSongSubset:/data/MillionSongSubset
+      # This mounts the ./data directory from the host
+      # into the /data directory inside the container
+      - ./data:/data
 
   spark-worker:
     image: apache/spark:4.1.0-preview4-scala2.13-java21-python3-r-ubuntu
@@ -35,7 +35,7 @@ services:
       - spark-net
     volumes:
       # Same volume mapping for the worker so it can access the dataset
-      - ./data/MillionSongSubset:/data/MillionSongSubset
+      - ./data:/data
 
 networks:
   spark-net:
