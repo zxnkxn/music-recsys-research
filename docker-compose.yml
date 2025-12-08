@@ -13,9 +13,10 @@ services:
       - spark-net
     volumes:
       # Volume format: <host_path>:<container_path>
-      # This mounts the ./data directory from the host
-      # into the /data directory inside the container
+      # This mounts the ./data (./scripts) directory from the host
+      # into the /data (/scripts) directory inside the container
       - ./data:/data
+      - ./scripts:/scripts
 
   spark-worker:
     image: apache/spark:4.1.0-preview4-scala2.13-java21-python3-r-ubuntu
@@ -34,8 +35,9 @@ services:
     networks:
       - spark-net
     volumes:
-      # Same volume mapping for the worker so it can access the dataset
+      # Same volume mapping for the worker
       - ./data:/data
+      - ./scripts:/scripts
 
 networks:
   spark-net:
