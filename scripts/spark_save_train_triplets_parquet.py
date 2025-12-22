@@ -1,3 +1,8 @@
+# Convert Taste Profile Subset TSV file to Parquet format
+#
+# USAGE:
+# docker exec -it spark-master /opt/spark/bin/spark-submit /opt/spark/work-dir/scripts/spark_save_train_triplets_parquet.py
+#
 # ========================================================
 # IMPORTANT:
 # Before running this script, make sure the host folder ./data
@@ -6,10 +11,6 @@
 # chmod 777 ./data
 # This ensures Spark inside the container can create the Parquet file.
 # ========================================================
-#
-# USAGE:
-# docker exec -it spark-master /opt/spark/bin/spark-submit /opt/spark/work-dir/scripts/spark_save_train_triplets_parquet.py
-#
 
 # Import SparkSession to create a Spark context
 from pyspark.sql import SparkSession

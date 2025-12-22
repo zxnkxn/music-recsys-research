@@ -2,6 +2,16 @@
 #
 # USAGE:
 # docker exec -it spark-master /opt/spark/bin/spark-submit --py-files /opt/spark/work-dir/scripts/hdf5_getters.py /opt/spark/work-dir/scripts/spark_save_mss_parquet.py
+#
+# ========================================================
+# IMPORTANT:
+# Before running this script, make sure the host folder ./data
+# (mounted as /opt/spark/work-dir/data inside the container)
+# has write permissions for all users. You can do this on the host with:
+# chmod 777 ./data
+# This ensures Spark inside the container can create the Parquet file.
+# ========================================================
+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructType, StructField,
