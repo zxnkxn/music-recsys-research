@@ -8,7 +8,7 @@ from pyspark.sql.functions import col, decode
 spark = SparkSession.builder.appName("Show Titles").getOrCreate()
 
 # Reads the Parquet file into a Spark DataFrame
-df = spark.read.parquet("/data/MillionSongSubset.parquet")
+df = spark.read.parquet("/opt/spark/work-dir/data/MillionSongSubset.parquet")
 
 # Replaces the existing column "get_title" with its decoded UTF-8 version
 # here we overwrite the original column instead of creating a new one
