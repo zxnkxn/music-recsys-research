@@ -14,9 +14,11 @@ services:
     volumes:
       # Volume format: <host_path>:<container_path>
       # This mounts the ./data (./scripts) directory from the host
-      # into the /data (/scripts) directory inside the container
-      - ./data:/data
-      - ./scripts:/scripts
+      # into the /opt/spark/work-dir/data (/opt/spark/work-dir/scripts) directory inside the container
+      # We use /opt/spark/work-dir as the mount point to ensure proper permissions
+      # for Spark to create temporary files during Parquet writing operations
+      - ./data:/opt/spark/work-dir/data
+      - ./scripts:/opt/spark/work-dir/scripts
 
   spark-worker:
     image: apache/spark:4.1.0-preview4-scala2.13-java21-python3-r-ubuntu
@@ -36,8 +38,10 @@ services:
       - spark-net
     volumes:
       # Same volume mapping for the worker
-      - ./data:/data
-      - ./scripts:/scripts
+      # Using /opt/spark/work-dir as mount point to ensure proper permissions
+      # for Spark operations in the worker nodes
+      - ./data:/opt/spark/work-dir/data
+      - ./scripts:/opt/spark/work-dir/scripts
 
 networks:
   spark-net:
