@@ -2,10 +2,13 @@ services:
   spark-master:
     image: apache/spark:4.1.0-preview4-scala2.13-java21-python3-r-ubuntu
     container_name: spark-master
+    user: root
     # Start the Spark Master process explicitly
     command: >
-      /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
-      --host spark-master
+      bash -c "
+      pip install tables numpy &&
+      su spark -c '/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host spark-master'
+      "
     ports:
       - "8080:8080" # Expose Spark Master Web UI
       - "7077:7077" # Expose Spark Master RPC port (workers & drivers connect here)
@@ -23,12 +26,15 @@ services:
   spark-worker:
     image: apache/spark:4.1.0-preview4-scala2.13-java21-python3-r-ubuntu
     container_name: spark-worker
+    user: root
     depends_on:
       - spark-master
     # Start the Spark Worker process and point it to the master URL
     command: >
-      /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker
-      spark://spark-master:7077
+      bash -c "
+      pip install tables numpy &&
+      su spark -c '/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077'
+      "
     environment:
       - SPARK_WORKER_MEMORY=2G
       - SPARK_WORKER_CORES=2

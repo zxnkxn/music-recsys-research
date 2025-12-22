@@ -14,26 +14,23 @@
 
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
-    StructType, StructField,
-    StringType, IntegerType, DoubleType
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
 )
-import os
-import numpy as np
 
 # --------------------------------------------------------
 # Spark session
 # --------------------------------------------------------
-spark = (
-    SparkSession.builder
-    .appName("Save MSS Metadata to Parquet")
-    .getOrCreate()
-)
+spark = SparkSession.builder.appName("Save MSS Metadata to Parquet").getOrCreate()
 
 # --------------------------------------------------------
 # Add the hdf5_getters.py file to all workers
 # --------------------------------------------------------
 sc = spark.sparkContext
-sc.addPyFile("/opt/spark/work-dir/scripts/hdf5_getters.py")  # Путь к hdf5_getters.py
+sc.addPyFile("/opt/spark/work-dir/scripts/hdf5_getters.py")
 
 # --------------------------------------------------------
 # Paths
@@ -44,53 +41,58 @@ OUTPUT_PATH = "/opt/spark/work-dir/data/MillionSongSubset.parquet"
 # --------------------------------------------------------
 # Explicit schema (required for Spark)
 # --------------------------------------------------------
-schema = StructType([
-    StructField("song_id", StringType(), True),
-    StructField("track_id", StringType(), True),
-    StructField("artist_id", StringType(), True),
-    StructField("artist_name", StringType(), True),
-    StructField("title", StringType(), True),
-    StructField("release", StringType(), True),
-    StructField("artist_familiarity", DoubleType(), True),
-    StructField("artist_hotttnesss", DoubleType(), True),
-    StructField("artist_location", StringType(), True),
-    StructField("song_hotttnesss", DoubleType(), True),
-    StructField("year", IntegerType(), True),
-    StructField("duration", DoubleType(), True),
-    StructField("tempo", DoubleType(), True),
-    StructField("loudness", DoubleType(), True),
-    StructField("energy", DoubleType(), True),
-    StructField("danceability", DoubleType(), True),
-    StructField("key", IntegerType(), True),
-    StructField("mode", IntegerType(), True),
-    StructField("time_signature", IntegerType(), True),
-])
+schema = StructType(
+    [
+        StructField("song_id", StringType(), True),
+        StructField("track_id", StringType(), True),
+        StructField("artist_id", StringType(), True),
+        StructField("artist_name", StringType(), True),
+        StructField("title", StringType(), True),
+        StructField("release", StringType(), True),
+        StructField("artist_familiarity", DoubleType(), True),
+        StructField("artist_hotttnesss", DoubleType(), True),
+        StructField("artist_location", StringType(), True),
+        StructField("song_hotttnesss", DoubleType(), True),
+        StructField("year", IntegerType(), True),
+        StructField("duration", DoubleType(), True),
+        StructField("tempo", DoubleType(), True),
+        StructField("loudness", DoubleType(), True),
+        StructField("energy", DoubleType(), True),
+        StructField("danceability", DoubleType(), True),
+        StructField("key", IntegerType(), True),
+        StructField("mode", IntegerType(), True),
+        StructField("time_signature", IntegerType(), True),
+    ]
+)
 
 # --------------------------------------------------------
 # Step 1: Find all .h5 files recursively (distributed)
 # --------------------------------------------------------
 # Use binaryFile with proper path handling to avoid URI scheme issues
 h5_files_rdd = (
-    spark.read
-    .format("binaryFile")
+    spark.read.format("binaryFile")
     .option("recursiveFileLookup", "true")
     .load(MSS_ROOT)
     .select("path")
-    .rdd
-    .map(lambda r: r.path)
+    .rdd.map(lambda r: r.path)
     .filter(lambda p: p.endswith(".h5"))
     # Fix path by removing file:// prefix if present
-    .map(lambda p: p[7:] if p.startswith("file://") else (p[5:] if p.startswith("file:") else p))
+    .map(
+        lambda p: p[7:]
+        if p.startswith("file://")
+        else (p[5:] if p.startswith("file:") else p)
+    )
 )
 
 print("Number of .h5 files found:", h5_files_rdd.count())
+
 
 # --------------------------------------------------------
 # Step 2: Parse HDF5 file (function to be used in workers)
 # --------------------------------------------------------
 def parse_h5_file(path: str):
     import hdf5_getters as h5g
-    
+
     # Ensure path is clean (remove file:// prefix if present)
     if isinstance(path, str) and path.startswith("file:"):
         if path.startswith("file://"):
@@ -103,9 +105,9 @@ def parse_h5_file(path: str):
 
         # Helper function to convert numpy types to Python native types
         def convert_value(value):
-            if hasattr(value, 'item'):  # numpy scalar
+            if hasattr(value, "item"):  # numpy scalar
                 return value.item()
-            elif hasattr(value, 'tolist'):  # numpy array
+            elif hasattr(value, "tolist"):  # numpy array
                 return value.tolist()
             else:
                 return value
@@ -140,14 +142,11 @@ def parse_h5_file(path: str):
         print(f"Failed to parse {path}: {e}")
         return None
 
+
 # --------------------------------------------------------
 # Step 3: Parse all files in parallel
 # --------------------------------------------------------
-songs_rdd = (
-    h5_files_rdd
-    .map(parse_h5_file)
-    .filter(lambda x: x is not None)
-)
+songs_rdd = h5_files_rdd.map(parse_h5_file).filter(lambda x: x is not None)
 
 print("Number of extracted records:", songs_rdd.count())
 
